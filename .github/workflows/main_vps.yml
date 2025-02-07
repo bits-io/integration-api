@@ -1,0 +1,67 @@
+name: BE Integration API VPS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Composer Install
+        uses: php-actions/composer@v6
+        with:
+          php_version: 8.2
+
+      - name: Deploy to VPS
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.HOST_VPS }}
+          username: ${{ secrets.USERNAME_VPS }}
+          password: ${{ secrets.PASSWORD_VPS }}
+          port: ${{ secrets.PORT_VPS }}
+          source: "*"
+          target: "/var/www/integration-api"
+
+      - name: Run Script
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST_VPS }}
+          username: ${{ secrets.USERNAME_VPS }}
+          password: ${{ secrets.PASSWORD_VPS }}
+          port: ${{ secrets.PORT_VPS }}
+          script: |
+            cd /var/www/integration-api
+            php artisan down
+            composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
+            sudo chmod -R 775 storage
+            sudo chmod -R 775 bootstrap/cache
+            sudo chown -R www-data:www-data storage
+            sudo chown -R www-data:www-data bootstrap/cache
+            php artisan cache:clear
+            php artisan config:clear
+            php artisan view:clear
+            php artisan route:clear
+            php artisan up
+
+      - name: Add Actions Status Discord (Success)
+        uses: sarisia/actions-status-discord@v1
+        if: success()
+        with:
+          webhook: ${{ secrets.DISCORD_1 }}
+          title: "Deploy to Development VPS"
+          description: "Integration API Development successfully deployed to VPS :sunglasses:"
+          color: 0x00ff00
+          username: Integration Alert
+
+      - name: Add Actions Status Discord (Failure)
+        uses: sarisia/actions-status-discord@v1
+        if: failure()
+        with:
+          webhook: ${{ secrets.DISCORD_1 }}
+          title: "Deploy to Development VPS"
+          description: "Deployment to Development VPS failed! :x:"
+          color: 0xff0000
+          username: Integration Alert

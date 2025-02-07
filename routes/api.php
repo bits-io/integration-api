@@ -1,8 +1,10 @@
 <?php
 
 use App\Http\Controllers\Api\BookController;
+use App\Http\Controllers\Api\DeepAIController;
 use App\Http\Controllers\Api\SocialiteController;
 use App\Http\Controllers\Api\DeepseekController;
+use App\Http\Controllers\Api\HuggingFaceController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -25,3 +27,4 @@ Route::prefix('auth')->group(function () {
 });
 
 Route::post('/deepseek/chat', [DeepseekController::class, 'chat']);
+Route::post('/text-to-image', [HuggingFaceController::class, 'textToImage']);

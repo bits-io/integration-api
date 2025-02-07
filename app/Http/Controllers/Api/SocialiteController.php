@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\SocialAuthRequest;
+use App\Http\Resources\UserResource;
 use App\Models\SocialAccount;
 use App\Models\User;
 use Exception;
@@ -33,7 +35,7 @@ class SocialiteController extends Controller
         return response()->json([
             'redirect_url' => Socialite::driver($provider)->with(['state' => $state])->redirect()->getTargetUrl()
         ]);
-    }    
+    }
 
     /**
      * Handle the authentication callback from provider.
